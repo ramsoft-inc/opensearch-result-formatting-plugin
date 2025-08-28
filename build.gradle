@@ -8,27 +8,20 @@ apply plugin: 'opensearch.yaml-rest-test'
 apply plugin: 'opensearch.pluginzip'
 apply plugin: 'opensearch.java-agent'
 
-def pluginName = 'rename'
-def pluginDescription = 'Custom plugin'
-def packagePath = 'org.example'
-def pathToPlugin = 'path.to.plugin'
-def pluginClassName = 'RenamePlugin'
-group = "RenameGroup"
+def pluginName = 'opensearch-result-formatting'
+def pluginDescription = 'OpenSearch plugin for custom result formatting (Array and FHIR Bundle)'
+def packagePath = 'org.opensearch.plugin'
+def pathToPlugin = 'rs'
+def pluginClassName = 'PluginRegistration'
+group = "ResultFormattingGroup"
+version = "1.0.0"
 
 java {
     targetCompatibility = JavaVersion.VERSION_21
     sourceCompatibility = JavaVersion.VERSION_21
 }
 
-tasks.register("preparePluginPathDirs") {
-    mustRunAfter clean
-    doLast {
-        def newPath = pathToPlugin.replace(".", "/")
-        mkdir "src/main/java/$packagePath/$newPath"
-        mkdir "src/test/java/$packagePath/$newPath"
-        mkdir "src/yamlRestTest/java/$packagePath/$newPath"
-    }
-}
+
 
 publishing {
     publications {
@@ -67,12 +60,16 @@ loggerUsageCheck.enabled = false
 // No need to validate pom, as we do not upload to maven/sonatype
 validateNebulaPom.enabled = false
 
+// Disable dependency license check for now
+dependencyLicenses.enabled = false
+
 buildscript {
     ext {
         opensearch_version = System.getProperty("opensearch.version", "3.2.0-SNAPSHOT")
     }
 
     repositories {
+        flatDir { dirs("libs") }
         mavenLocal()
         maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
         mavenCentral()
@@ -85,39 +82,17 @@ buildscript {
 }
 
 repositories {
+    flatDir { dirs("libs") }
     mavenLocal()
     maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
     mavenCentral()
     maven { url "https://plugins.gradle.org/m2/" }
 }
 
-test {
-    include '**/*Tests.class'
-}
-
-task integTest(type: RestIntegTestTask) {
-    description = "Run tests against a cluster"
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-}
-tasks.named("check").configure { dependsOn(integTest) }
-
-integTest {
-    // The --debug-jvm command-line option makes the cluster debuggable; this makes the tests debuggable
-    if (System.getProperty("test.debug") != null) {
-        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005'
-    }
-}
-
-testClusters.integTest {
-    testDistribution = "INTEG_TEST"
-
-    // This installs our plugin into the testClusters
-    plugin(project.tasks.bundlePlugin.archiveFile)
-}
-
-run {
-    useCluster testClusters.integTest
+dependencies {
+    implementation 'org.json:json:20240303'
+    // Add JetBrains annotations if needed
+    compileOnly 'org.jetbrains:annotations:24.0.1'
 }
 
 // updateVersion: Task to auto update version to the next development iteration

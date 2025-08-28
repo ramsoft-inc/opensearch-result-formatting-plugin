@@ -12,6 +12,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
+import org.opensearch.plugin.rs.PluginRegistration;
 import org.opensearch.plugins.Plugin;
 import org.opensearch.test.OpenSearchIntegTestCase;
 
@@ -28,7 +29,7 @@ public class RenamePluginIT extends OpenSearchIntegTestCase {
 
     @Override
     protected Collection<Class<? extends Plugin>> nodePlugins() {
-        return Collections.singletonList(RenamePlugin.class);
+        return Collections.singletonList(PluginRegistration.class);
     }
 
     public void testPluginInstalled() throws IOException, ParseException {
@@ -36,6 +37,6 @@ public class RenamePluginIT extends OpenSearchIntegTestCase {
         String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
         logger.info("response body: {}", body);
-        assertThat(body, containsString("rename"));
+        assertThat(body, containsString("opensearch-result-formatting"));
     }
 }
