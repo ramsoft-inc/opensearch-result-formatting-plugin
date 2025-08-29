@@ -1,221 +1,228 @@
-# Template for creating OpenSearch Plugins
-This Repo is a GitHub Template repository ([Learn more about that](https://docs.github.com/articles/creating-a-repository-from-a-template/)).
-Using it would create a new repo that is the boilerplate code required for an [OpenSearch Plugin](https://opensearch.org/blog/technical-posts/2021/06/my-first-steps-in-opensearch-plugins/). 
-This plugin on its own would not add any functionality to OpenSearch, but it is still ready to be installed.
-It comes packaged with:
- - Integration tests of two types: Yaml and IntegTest.
- - Empty unit tests file
- - Notice and License files (Apache License, Version 2.0)
- - A `build.gradle` file supporting this template's current state.
+# OpenSearch Result Formatting Plugin
 
----
----
-1. [Create your plugin repo using this template](#create-your-plugin-repo-using-this-template)
-   - [Official plugins](#official-plugins)
-   - [Thirdparty plugins](#thirdparty-plugins)
-2. [Fix up the template to match your new plugin requirements](#fix-up-the-template-to-match-your-new-plugin-requirements)
-   - [Plugin Name](#plugin-name)
-   - [Plugin Path](#plugin-path)
-   - [Update the `build.gradle` file](#update-the-buildgradle-file)
-   - [Update the tests](#update-the-tests)
-   - [Running the tests](#running-the-tests)
-   - [Running testClusters with the plugin installed](#running-testclusters-with-the-plugin-installed)
-   - [Cleanup template code](#cleanup-template-code)
-   - [Editing the CI workflow](#Editing-the-CI-workflow)
-3. [License](#license)
-4. [Copyright](#copyright)
----
----
+This OpenSearch plugin provides custom REST endpoints for formatting search responses in different formats. Originally migrated from Elasticsearch, this plugin now supports OpenSearch 3.2.0+ and offers enhanced result formatting capabilities.
 
-## Create your plugin repo using this template
-Click on "Use this Template"
+## Features
 
-![Use this Template](https://docs.github.com/assets/images/help/repository/use-this-template-button.png)
+This plugin extends OpenSearch with two specialized search endpoints:
 
-Name the repository, and provide a description.
+1. **Array Format**: Returns search results as a simple JSON array
+2. **FHIR Bundle Format**: Returns search results wrapped in a FHIR Bundle structure
 
-Depending on the plugin relationship with the OpenSearch organization we currently recommend the following naming conventions and optional follow-up checks:
+## API Endpoints
 
-### Official plugins
-
-For the **official plugins** that live within the OpenSearch organization (i.e. they are included in [OpenSearch/plugins/](https://github.com/opensearch-project/OpenSearch/tree/main/plugins) or [OpenSearch/modules/](https://github.com/opensearch-project/OpenSearch/tree/main/modules) folder), and **which share the same release cycle as OpenSearch** itself:
-
-- Do not include the word `plugin` in the repo name (e.g. [job-scheduler](https://github.com/opensearch-project/job-scheduler))
-- Use lowercase repo names
-- Use spinal case for repo names (e.g. [job-scheduler](https://github.com/opensearch-project/job-scheduler))
-- Do not include the word `OpenSearch` or `OpenSearch Dashboards` in the repo name
-- Provide a meaningful description, e.g. `An OpenSearch Dashboards plugin to perform real-time and historical anomaly detection on OpenSearch data`.
-
-### Thirdparty plugins
-
-For the **3rd party plugins** that are maintained as independent projects in separate GitHub repositories **with their own release cycles** the recommended naming convention should follow the same rules as official plugins with some exceptions and few follow-up checks:
-
-- Inclusion of the words like `OpenSearch` or `OpenSearch Dashboard` (and in reasonable cases even `plugin`) are welcome because they can increase the chance of discoverability of the repository
-- Check the plugin versioning policy is documented and help users know which versions of the plugin are compatible and recommended for specific versions of OpenSearch 
-- Review [CONTRIBUTING.md](CONTRIBUTING.md) document which is by default tailored to the needs of Amazon Web Services developer teams. You might want to update or further customize specific parts related to:
-  - **Code of Conduct** (if you do not already have CoC policy then there are several options to start with, such as [Contributor Covenant](https://www.contributor-covenant.org/)),
-  - **Security Policy** (you should let users know how they can safely report security vulnerabilities),
-  - Check if you need explicit part about **Trademarks and Attributions** (if you use any registered or non-registered trademarks we recommend following applicable "trademark-use" documents provided by respective trademark owners)
-
-## Fix up the template to match your new plugin requirements
-
-This is the file tree structure of the source code, as you can see there are some things you will want to change.
-
+### Array Format Endpoints
 ```
-`-- src
-    |-- main
-    |   `-- java
-    |       `-- org
-    |           `-- example
-    |               `-- path
-    |                   `-- to
-    |                       `-- plugin
-    |                           `-- RenamePlugin.java
-    |-- test
-    |   `-- java
-    |       `-- org
-    |           `-- example
-    |               `-- path
-    |                   `-- to
-    |                       `-- plugin
-    |                           |-- RenamePluginIT.java
-    |                           `-- RenameTests.java
-    `-- yamlRestTest
-        |-- java
-        |   `-- org
-        |       `-- example
-        |           `-- path
-        |               `-- to
-        |                   `-- plugin
-        |                       `-- RenameClientYamlTestSuiteIT.java
-        `-- resources
-            `-- rest-api-spec
-                `-- test
-                    `-- 10_basic.yml
-
+GET /_search_array
+POST /_search_array
+GET /{index}/_search_array
+POST /{index}/_search_array
+GET /{index}/{type}/_search_array
+POST /{index}/{type}/_search_array
 ```
 
-### Plugin Name
-Now that you have named the repo, you can change the plugin class `RenamePlugin.java` to have a meaningful name, keeping the `Plugin` suffix.
-Change `RenamePluginIT.java`, `RenameTests.java`, and `RenameClientYamlTestSuiteIT.java` accordingly, keeping the `PluginIT`, `Tests`, and `ClientYamlTestSuiteIT` suffixes.
-
-### Plugin Path 
-You will need to change these paths in the source tree:
-
-1) Package Path
-    ```
-    `-- org
-        `-- example
-    ```
-    Let's call this our *package path*. In Java, package naming convention is to use a domain name in order to create a unique package name.
-    This is normally your organization's domain.
-
-2) Plugin Path
-    ```
-     `-- path
-         `-- to
-             `-- plugin
-    ```
-    Let's call this our *plugin path*, as the plugin class would be installed in OpenSearch under that path.
-    This can be an existing path in OpenSearch, or it can be a unique path for your plugin. We recommend changing it to something meaningful.
-
-3) Change all these path occurrences to match your chosen path and naming by following [this](#update-the-buildgradle-file) section
-
-### Update the `build.gradle` file
-
-Update the following section, using the new repository name and description, plugin class name, package and plugin paths:
-
+### FHIR Bundle Format Endpoints
 ```
-def pluginName = 'rename'                // Can be the same as new repo name except including words `plugin` or `OpenSearch` is discouraged
-def pluginDescription = 'Custom plugin'  // Can be same as new repo description
-def packagePath = 'org.example'          // The package name for your plugin (convention is to use your organization's domain name)
-def pathToPlugin = 'path.to.plugin'      // The path you chose for the plugin
-def pluginClassName = 'RenamePlugin'     // The plugin class name
+GET /_search_fhir_bundle
+POST /_search_fhir_bundle
+GET /{index}/_search_fhir_bundle
+POST /{index}/_search_fhir_bundle
+GET /{index}/{type}/_search_fhir_bundle
+POST /{index}/{type}/_search_fhir_bundle
 ```
 
-Next update the version of OpenSearch you want the plugin to be installed into. Change the following param:
+## Requirements
+
+- **Java**: JDK 21 or higher
+- **OpenSearch**: Version 3.2.0 or higher
+- **Gradle**: 8.10.2+ (included via wrapper)
+
+## Installation
+
+### Building from Source
+
+1. **Clone and build the plugin**:
+   ```bash
+   git clone <repository-url>
+   cd opensearch-result-formatting-plugin
+   ./gradlew clean build
+   ```
+
+2. **Install the plugin**:
+   ```bash
+   # Navigate to your OpenSearch installation directory
+   cd /path/to/opensearch
+   
+   # Install the plugin using file URI (Windows example)
+   bin/opensearch-plugin install "file:///C:/path/to/opensearch-result-formatting-plugin/build/distributions/opensearch-result-formatting-1.0.0.zip"
+   
+   # Or for Linux/macOS
+   bin/opensearch-plugin install "file:///path/to/opensearch-result-formatting-plugin/build/distributions/opensearch-result-formatting-1.0.0.zip"
+   ```
+
+3. **Verify installation**:
+   ```bash
+   bin/opensearch-plugin list
+   ```
+   You should see `opensearch-result-formatting` in the list.
+
+4. **Restart OpenSearch**:
+   ```bash
+   # Stop OpenSearch if running, then start it
+   bin/opensearch
+   ```
+
+## Usage Examples
+
+### Array Format Response
+
+**Request**:
+```bash
+curl -X GET "localhost:9200/_search_array"
 ```
-    ext {
-        opensearch_version = "1.0.0-beta1" // <-- change this to the version your plugin requires
+
+**Response**:
+```json
+[
+  {
+    "study": "test study A",
+    "StudyUID": "1.2.4.5.5252",
+    "age": "12"
+  },
+  {
+    "study": "test study B",
+    "StudyUID": "1.2.4.5.212",
+    "age": "12"
+  },
+  {
+    "study": "test study C",
+    "StudyUID": "1.2.4.5.23512.23.125.125",
+    "age": "35"
+  }
+]
+```
+
+### FHIR Bundle Format Response
+
+**Request**:
+```bash
+curl -X GET "localhost:9200/_search_fhir_bundle"
+```
+
+**Response**:
+```json
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 3,
+  "entry": [
+    {
+      "resource": {
+        "study": "test study A",
+        "StudyUID": "1.2.4.5.5252",
+        "age": "12"
+      },
+      "search": {
+        "mode": "match"
+      }
     }
+  ]
+}
 ```
 
-- Run `./gradlew preparePluginPathDirs` in the terminal
-- Move the java classes into the new directories (will require to edit the `package` name in the files as well)
-- Delete the old directories (the `org.example` directories)
+## Advanced Features
 
-### Update the tests
-Notice that in the tests we are checking that the plugin was installed by sending a GET `/_cat/plugins` request to the cluster and expecting `rename` to be in the response.
-In order for the tests to pass you must change `rename` in `RenamePluginIT.java` and in `10_basic.yml` to be the `pluginName` you defined in the `build.gradle` file in the previous section.
+### Array Format with Field Filtering
 
-### Running the tests
-You may need to install OpenSearch and build a local artifact for the integration tests and build tools ([Learn more here](https://github.com/opensearch-project/opensearch-plugins/blob/main/BUILDING.md)):
+You can filter specific fields using the `filterField` parameter:
 
-```
-~/OpenSearch (main)> git checkout 1.0.0-beta1 -b beta1-release
-~/OpenSearch (main)> ./gradlew publishToMavenLocal -Dbuild.version_qualifier=beta1 -Dbuild.snapshot=false
+```bash
+curl -X GET "localhost:9200/_search_array?filterField=StudyUID"
 ```
 
-Now you can run all the tests like so:
-```
+This will return only the values of the specified field as an array.
+
+### FHIR Bundle with Highlights
+
+The FHIR Bundle format automatically includes search highlights in the `response.eTag` field when highlights are present in the search results.
+
+## Development
+
+### Running Tests
+
+```bash
+# Run unit tests
+./gradlew test
+
+# Run integration tests
+./gradlew integTest
+
+# Run all tests
 ./gradlew check
 ```
 
-### Running testClusters with the plugin installed 
-```
-./gradlew run
-```
+### Building for Different OpenSearch Versions
 
-Then you can see that your plugin has been installed by running: 
-```
-curl -XGET 'localhost:9200/_cat/plugins'
-```
+To build for a different OpenSearch version, update the `opensearch_version` in `build.gradle`:
 
-### Cleanup template code
-- You can now delete the unused paths - `path/to/plugin`.
-- Remove this from the `build.gradle`:
-
-```
-tasks.register("preparePluginPathDirs") {
-    mustRunAfter clean
-    doLast {
-        def newPath = pathToPlugin.replace(".", "/")
-        mkdir "src/main/java/$packagePath/$newPath"
-        mkdir "src/test/java/$packagePath/$newPath"
-        mkdir "src/yamlRestTest/java/$packagePath/$newPath"
+```gradle
+buildscript {
+    ext {
+        opensearch_version = System.getProperty("opensearch.version", "3.2.0-SNAPSHOT")
     }
 }
 ```
 
-- Last but not least, add your own `README.md` instead of this one 
+## Migration from Elasticsearch
 
-### Editing the CI workflow
-You may want to edit the CI of your new repo.
-  
-In your new GitHub repo, head over to `.github/workflows/CI.yml`. This file describes the workflow for testing new push or pull-request actions on the repo.
-Currently, it is configured to build the plugin and run all the tests in it.
+This plugin was originally developed for Elasticsearch and has been migrated to work with OpenSearch. Key changes include:
 
-You may need to alter the dependencies required by your new plugin.
-Also, the **OpenSearch version** in the `Build OpenSearch` and in the `Build and Run Tests` steps should match your plugins version in the `build.gradle` file.
+- Updated package imports from `org.elasticsearch.*` to `org.opensearch.*`
+- Compatibility with OpenSearch 3.2.0+ API changes
+- Updated build system from Maven to Gradle
+- Enhanced error handling and response formatting
 
-To view more complex CI examples you may want to checkout the workflows in official OpenSearch plugins, such as [anomaly-detection](https://github.com/opensearch-project/anomaly-detection/blob/main/.github/workflows/test_build_multi_platform.yml).
+## Troubleshooting
 
-## Your Plugin's License
-Source code files in this template contains the following header:
-```
-/*
-* SPDX-License-Identifier: Apache-2.0
-*
-* The OpenSearch Contributors require contributions made to
-* this file be licensed under the Apache-2.0 license or a
-* compatible open source license.
-  */
-```
-This plugin template is indeed open-sourced while you might choose to use it to create a proprietary plugin.
-Be sure to update your plugin to meet any licensing requirements you may be subject to.
+### Plugin Installation Issues
+
+If you encounter `UnknownHostException` during installation:
+- Ensure you're using the correct file URI format: `file:///` (three slashes)
+- Use forward slashes `/` instead of backslashes `\` in paths
+- Try copying the plugin zip to the OpenSearch directory first
+
+### Version Compatibility
+
+This plugin is built for OpenSearch 3.2.0+. For other versions, you may need to:
+- Update the `opensearch.version` in `build.gradle`
+- Rebuild the plugin
+- Check for API compatibility issues
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
 
 ## License
-This code is licensed under the Apache 2.0 License. See [LICENSE.txt](LICENSE.txt).
 
-## Copyright
-Copyright OpenSearch Contributors. See [NOTICE](NOTICE.txt) for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## References
+
+- **Original Elasticsearch Plugin**: [elasticsearch-arrayformat](https://github.com/jprante/elasticsearch-arrayformat)
+- **RamSoft Elasticsearch Plugin**: [ElasticSearch-Result-Formatting-Plugin](https://github.com/ramsoft-inc/ElasticSearch-Result-Formatting-Plugin)
+- **OpenSearch Plugin Development**: [OpenSearch Plugin Development Guide](https://opensearch.org/docs/latest/plugin-development/)
+- **FHIR Bundle Specification**: [HL7 FHIR Bundle](https://www.hl7.org/fhir/bundle.html)
+
+## Changelog
+
+### Version 1.0.0
+- Initial OpenSearch version migrated from Elasticsearch
+- Support for OpenSearch 3.2.0+
+- Enhanced FHIR Bundle formatting with highlight support
+- Improved error handling and response formatting
+- Updated build system to Gradle
