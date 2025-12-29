@@ -90,7 +90,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.json:json:20240303'
+    implementation 'org.json:json:20251224'
     // Add JetBrains annotations if needed
     compileOnly 'org.jetbrains:annotations:24.0.1'
 }
