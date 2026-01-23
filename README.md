@@ -1,6 +1,6 @@
 # OpenSearch Result Formatting Plugin
 
-This OpenSearch plugin provides custom REST endpoints for formatting search responses in different formats. Originally migrated from Elasticsearch, this plugin now supports OpenSearch 3.3.0+ and offers enhanced result formatting capabilities.
+This OpenSearch plugin provides custom REST endpoints for formatting search responses in different formats. Originally migrated from Elasticsearch, this plugin now supports OpenSearch 3.4.0+ and offers enhanced result formatting capabilities.
 
 ## Features
 
@@ -34,7 +34,7 @@ POST /{index}/{type}/_search_fhir_bundle
 ## Requirements
 
 - **Java**: JDK 21 or higher
-- **OpenSearch**: Version 3.3.0 or higher
+- **OpenSearch**: Version 3.4.0 or higher
 - **Gradle**: 8.10.2+ (included via wrapper)
 
 ## Installation
@@ -168,7 +168,7 @@ To build for a different OpenSearch version, update the `opensearch_version` in 
 ```gradle
 buildscript {
     ext {
-        opensearch_version = System.getProperty("opensearch.version", "3.3.0-SNAPSHOT")
+        opensearch_version = System.getProperty("opensearch.version", "3.4.0")
     }
 }
 ```
@@ -178,7 +178,7 @@ buildscript {
 This plugin was originally developed for Elasticsearch and has been migrated to work with OpenSearch. Key changes include:
 
 - Updated package imports from `org.elasticsearch.*` to `org.opensearch.*`
-- Compatibility with OpenSearch 3.3.0+ API changes
+- Compatibility with OpenSearch 3.4.0+ API changes
 - Updated build system from Maven to Gradle
 - Enhanced error handling and response formatting
 
@@ -193,7 +193,7 @@ If you encounter `UnknownHostException` during installation:
 
 ### Version Compatibility
 
-This plugin is built for OpenSearch 3.3.0+. For other versions, you may need to:
+This plugin is built for OpenSearch 3.4.0+. For other versions, you may need to:
 - Update the `opensearch.version` in `build.gradle`
 - Rebuild the plugin
 - Check for API compatibility issues
@@ -222,7 +222,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LI
 
 ### Version 1.0.0
 - Initial OpenSearch version migrated from Elasticsearch
-- Support for OpenSearch 3.3.0+
+- Support for OpenSearch 3.4.0+
 - Enhanced FHIR Bundle formatting with highlight support
 - Improved error handling and response formatting
 - Updated build system to Gradle
