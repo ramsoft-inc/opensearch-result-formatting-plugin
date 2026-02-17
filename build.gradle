@@ -14,14 +14,31 @@ def packagePath = 'org.opensearch.plugin'
 def pathToPlugin = 'rs'
 def pluginClassName = 'PluginRegistration'
 group = "ResultFormattingGroup"
-version = "1.0.0"
+
+buildscript {
+    ext {
+        opensearch_version = System.getProperty("opensearch.version", "3.5.0")
+    }
+
+    repositories {
+        flatDir { dirs("libs") }
+        mavenLocal()
+        maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath "org.opensearch.gradle:build-tools:${opensearch_version}"
+    }
+}
+
+version = opensearch_version
 
 java {
     targetCompatibility = JavaVersion.VERSION_21
     sourceCompatibility = JavaVersion.VERSION_21
 }
-
-
 
 publishing {
     publications {
@@ -63,24 +80,6 @@ validateNebulaPom.enabled = false
 // Disable dependency license check for now
 dependencyLicenses.enabled = false
 
-buildscript {
-    ext {
-        opensearch_version = System.getProperty("opensearch.version", "3.4.0")
-    }
-
-    repositories {
-        flatDir { dirs("libs") }
-        mavenLocal()
-        maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
-        mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-
-    dependencies {
-        classpath "org.opensearch.gradle:build-tools:${opensearch_version}"
-    }
-}
-
 repositories {
     flatDir { dirs("libs") }
     mavenLocal()
@@ -93,6 +92,13 @@ dependencies {
     implementation 'org.json:json:20240303'
     // Add JetBrains annotations if needed
     compileOnly 'org.jetbrains:annotations:24.0.1'
+}
+
+configurations.all {
+    resolutionStrategy {
+        // Automatically resolve conflicts by preferring the newer version
+        preferProjectModules()
+    }
 }
 
 // updateVersion: Task to auto update version to the next development iteration
