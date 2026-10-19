@@ -1,0 +1,77 @@
+setup:
+  - do:
+      indices.create:
+        index: studies
+        body:
+          mappings:
+            properties:
+              StudyUID: { type: keyword }
+              description: { type: text }
+              order: { type: integer }
+
+  - do:
+      index:
+        index: studies
+        id: "1"
+        body: { StudyUID: "1.2.3", description: "chest xray", order: 1 }
+
+  - do:
+      index:
+        index: studies
+        id: "2"
+        body:
+          StudyUID: "4.5.6"
+          description: "knee mri"
+          order: 2
+          FhirJSON: '{"resourceType":"ImagingStudy","id":"study-2"}'
+
+  - do:
+      indices.refresh:
+        index: studies
+
+---
+"Array format returns hit sources as an array":
+  - do:
+      search_array:
+        index: studies
+        body: { sort: [ { order: asc } ] }
+
+  - length: { $body: 2 }
+  - match: { 0.StudyUID: "1.2.3" }
+  - match: { 1.StudyUID: "4.5.6" }
+
+---
+"Array format with no hits returns an empty array":
+  - do:
+      search_array:
+        index: studies
+        body: { query: { term: { StudyUID: "none" } } }
+
+  - match: { $body: [] }
+
+---
+"FHIR bundle wraps hits and unwraps FhirJSON":
+  - do:
+      search_fhir_bundle:
+        index: studies
+        body: { sort: [ { order: asc } ] }
+
+  - match: { resourceType: Bundle }
+  - match: { type: searchset }
+  - match: { total: 2 }
+  - match: { entry.0.resource.StudyUID: "1.2.3" }
+  - match: { entry.0.search.mode: match }
+  - match: { entry.1.resource.resourceType: ImagingStudy }
+  - match: { entry.1.resource.id: study-2 }
+
+---
+"FHIR bundle puts highlights in response.eTag":
+  - do:
+      search_fhir_bundle:
+        index: studies
+        body:
+          query: { match: { description: knee } }
+          highlight: { fields: { description: {} } }
+
+  - match: { total: 1 }
+  - match: { entry.0.response.eTag: '/"description":"\[<em>knee<\\/em>\smri\]"/' }

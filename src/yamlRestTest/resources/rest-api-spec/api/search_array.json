@@ -1,0 +1,23 @@
+{
+  "search_array": {
+    "documentation": {
+      "url": "https://github.com/ramsoft-inc/opensearch-result-formatting-plugin",
+      "description": "Search, returning the hit sources as a JSON array"
+    },
+    "stability": "stable",
+    "url": {
+      "paths": [
+        { "path": "/_search_array", "methods": ["GET", "POST"] },
+        {
+          "path": "/{index}/_search_array",
+          "methods": ["GET", "POST"],
+          "parts": { "index": { "type": "list", "description": "Indices to search" } }
+        }
+      ]
+    },
+    "params": {
+      "filterField": { "type": "string", "description": "Return only this field's value from each hit" }
+    },
+    "body": { "description": "The search definition" }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "search_fhir_bundle": {
+    "documentation": {
+      "url": "https://github.com/ramsoft-inc/opensearch-result-formatting-plugin",
+      "description": "Search, returning the hits as a FHIR searchset Bundle"
+    },
+    "stability": "stable",
+    "url": {
+      "paths": [
+        { "path": "/_search_fhir_bundle", "methods": ["GET", "POST"] },
+        {
+          "path": "/{index}/_search_fhir_bundle",
+          "methods": ["GET", "POST"],
+          "parts": { "index": { "type": "list", "description": "Indices to search" } }
+        }
+      ]
+    },
+    "body": { "description": "The search definition" }
+  }
+}
