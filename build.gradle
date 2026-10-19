@@ -17,7 +17,7 @@ group = "ResultFormattingGroup"
 
 buildscript {
     ext {
-        opensearch_version = System.getProperty("opensearch.version", "3.5.0")
+        opensearch_version = System.getProperty("opensearch.version", "3.9.0")
     }
 
     repositories {
